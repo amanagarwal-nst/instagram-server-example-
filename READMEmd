@@ -1,0 +1,41 @@
+# The Journey of a Request
+
+An interactive explainer that turns the "what happens when you tap Like" diagram into a
+playable request lifecycle: **You (frontend) → Server → Cache → Database → back**.
+
+- **Writes** — like, comment, and share a post. Each travels to the database and clears the cache.
+- **Reads** — hit **Refresh** (GET /feed). The cache serves repeat reads instantly; the first read
+  (or one after a write / TTL expiry) misses and fetches from the database.
+- **Network conditions** — switch between Wi-Fi, 3G, and Offline to see latency change and
+  failed requests roll back.
+
+It's a single static `index.html` — no build step, no dependencies.
+
+> Note: likes/comments/cache state live in the browser's memory, so a page reload resets them.
+> That's intentional for the demo. Real persistence would need a backend or hosted database.
+
+## Deploy to Vercel from GitHub
+
+1. **Create a GitHub repo** and push these files so `index.html` is at the repo root:
+   ```bash
+   git init
+   git add .
+   git commit -m "Add request game"
+   git branch -M main
+   git remote add origin https://github.com/YOUR_USERNAME/YOUR_REPO.git
+   git push -u origin main
+   ```
+2. Go to **vercel.com**, sign in, and click **Add New → Project**.
+3. **Import** this repo (authorize GitHub if prompted).
+4. In the config screen:
+   - **Framework Preset:** Other
+   - **Build Command:** leave empty
+   - **Output Directory:** `.` (a single dot)
+   - **Install Command:** leave empty
+5. Click **Deploy**. You'll get a live URL like `your-repo.vercel.app`.
+
+Every `git push` to `main` after that redeploys automatically.
+
+## Run locally
+
+Just open `index.html` in a browser. (Or serve it: `npx serve` in this folder.)
