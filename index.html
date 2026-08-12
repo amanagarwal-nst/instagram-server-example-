@@ -1,0 +1,650 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>The Journey of a Request</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#0a0d20; --line:#2a3170;
+    --paper:#ffffff; --t-hi:#f3f5ff; --t-lo:#98a2d6; --t-dim:#5f699e;
+    --heart:#ff2d55;
+    --like:#ff4d7d; --comment:#7c8dff; --post:#ffb020; --read:#22d3ee; --ok:#2fe0a0;
+    --server:#a78bfa; --cache:#22d3ee; --db:#34d399; --err:#ff5a6a; --warn:#ffb020;
+  }
+  *{box-sizing:border-box} html,body{margin:0}
+  body{font-family:"Space Grotesk",system-ui,sans-serif;color:var(--t-hi);
+    background:
+      radial-gradient(1100px 620px at 80% -8%, #241a52 0%, transparent 60%),
+      radial-gradient(900px 560px at 4% 108%, #10233f 0%, transparent 55%),
+      linear-gradient(160deg,#0a0d20,#0c1030 55%,#0a0d20);
+    min-height:100vh;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:1180px;margin:0 auto;padding:26px 22px 56px}
+
+  header{display:flex;flex-wrap:wrap;gap:18px 24px;align-items:flex-end;justify-content:space-between;margin-bottom:20px}
+  .eyebrow{font-family:"Space Mono",monospace;font-size:12px;letter-spacing:.28em;text-transform:uppercase;color:var(--t-dim);margin:0 0 8px}
+  h1{font-size:clamp(27px,4.4vw,44px);line-height:1.02;margin:0;font-weight:700;letter-spacing:-.02em}
+  .sub{color:var(--t-lo);margin:10px 0 0;max-width:54ch;font-size:15px;line-height:1.5}
+  .legend{display:flex;gap:8px;flex-wrap:wrap}
+  .chip{display:flex;align-items:center;gap:8px;background:rgba(255,255,255,.04);border:1px solid var(--line);border-radius:999px;padding:7px 12px;font-size:12.5px;color:var(--t-lo)}
+  .chip b{color:var(--t-hi);font-weight:600}
+  .dot{width:9px;height:9px;border-radius:50%}
+
+  .grid{display:grid;grid-template-columns:312px 1fr;gap:22px;align-items:start}
+  @media(max-width:900px){.grid{grid-template-columns:1fr}}
+  .panel{background:linear-gradient(180deg,rgba(255,255,255,.045),rgba(255,255,255,.02));border:1px solid var(--line);border-radius:20px}
+
+  /* phone */
+  .phone{background:#0c0f26;border:1px solid #2b3372;border-radius:34px;padding:12px;box-shadow:0 30px 60px rgba(0,0,0,.5)}
+  .screen{background:var(--paper);border-radius:24px;overflow:hidden;color:#111;height:560px;display:flex;flex-direction:column}
+  .st-bar{display:flex;justify-content:space-between;align-items:center;padding:9px 16px 5px;font:600 12px "Space Grotesk"}
+  .ig-top{display:flex;align-items:center;justify-content:space-between;padding:8px 13px;border-bottom:1px solid #efefef}
+  .ig-logo{font-weight:700;font-size:17px;background:linear-gradient(45deg,#feda75,#fa7e1e,#d62976,#962fbf,#4f5bd5);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .compose{display:flex;gap:8px;padding:10px 12px;border-bottom:1px solid #efefef;align-items:center}
+  .compose input{flex:1;border:1px solid #e3e3e8;border-radius:20px;padding:8px 12px;font:400 13px "Space Grotesk";outline:none}
+  .compose input:focus{border-color:#b9c0ff}
+  .btn{border:0;cursor:pointer;font:600 13px "Space Grotesk";border-radius:20px;padding:8px 14px;color:#fff}
+  .btn.share{background:var(--post);color:#3a2a00}
+  .btn.send{background:var(--comment)}
+  .btn.read{background:var(--read);color:#053}
+  .btn:active{transform:scale(.96)}
+  .btn:disabled{opacity:.55;cursor:default}
+  .refresh-bar{display:flex;align-items:center;gap:10px;padding:7px 12px;border-bottom:1px solid #efefef;background:#fafaff}
+  .refresh-bar .ep{font:400 11.5px "Space Mono";color:#8a8a8a}
+  .refresh-bar .ep.hit{color:#0a8ea0}.refresh-bar .ep.miss{color:#a06b00}.refresh-bar .ep.err{color:#c53}
+  .ic{display:inline-block}.ic.spin{animation:spin .7s linear infinite}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .feed{flex:1;overflow-y:auto;overscroll-behavior:contain}
+  .feed::-webkit-scrollbar{width:6px}.feed::-webkit-scrollbar-thumb{background:#dcdce4;border-radius:3px}
+
+  .post{border-bottom:8px solid #f4f4f6}
+  .post .head{display:flex;align-items:center;gap:9px;padding:9px 13px}
+  .ava{width:30px;height:30px;border-radius:50%;background:conic-gradient(from 20deg,#feda75,#d62976,#4f5bd5,#feda75);padding:2px;flex:0 0 auto}
+  .ava span{display:block;width:100%;height:100%;border-radius:50%;background:#fff url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><circle cx="12" cy="9" r="4" fill="%23cbd0e6"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6" fill="%23cbd0e6"/></svg>') center/cover}
+  .head b{font-size:13px}.head small{display:block;color:#8a8a8a;font-size:11px;font-weight:400}
+  .post.pending{opacity:.72}
+  .badge{margin-left:auto;font:600 10.5px "Space Mono";color:#a06b00;background:#fff3d6;padding:3px 8px;border-radius:20px}
+  .photo{aspect-ratio:1/1;width:100%;background:linear-gradient(180deg,#ffd9a0,#ff9e7d 32%,#c96a9e 62%,#5a4b8a);position:relative;overflow:hidden}
+  .sun{position:absolute;left:50%;top:44%;width:58px;height:58px;border-radius:50%;transform:translate(-50%,-50%);background:radial-gradient(circle,#fff6d8,#ffd36b 60%,rgba(255,211,107,0) 72%)}
+  .mtn{position:absolute;bottom:32%;left:0;right:0;height:38%;background:linear-gradient(180deg,#4a3f78,#2f2a52);clip-path:polygon(0 60%,18% 20%,34% 55%,52% 8%,70% 50%,86% 22%,100% 58%,100% 100%,0 100%)}
+  .water{position:absolute;bottom:0;left:0;right:0;height:32%;background:linear-gradient(180deg,#7d6aa8,#3c366a)}
+  .textbody{padding:16px 14px;font-size:14.5px;line-height:1.45;color:#fff;background:linear-gradient(135deg,#6a5cff,#9a6cff)}
+  .actions{display:flex;align-items:center;gap:15px;padding:9px 13px 3px}
+  .iac{cursor:pointer;color:#222;display:flex;background:none;border:0;padding:0}
+  .likeBtn{transition:transform .12s}.likeBtn:active{transform:scale(.8)}
+  .likeBtn.on svg{fill:var(--heart);stroke:var(--heart)}
+  .likeBtn.pop{animation:pop .42s cubic-bezier(.2,1.5,.4,1)}
+  @keyframes pop{0%{transform:scale(.6)}45%{transform:scale(1.35)}100%{transform:scale(1)}}
+  .likes{padding:1px 13px 2px;font:600 13px "Space Grotesk";display:flex;align-items:center;gap:6px}
+  .likes.pending .num{color:#9aa0b4}
+  .pdot{width:6px;height:6px;border-radius:50%;background:#c7ccdd;animation:blink 1s infinite}
+  .pdot.hidden{display:none}@keyframes blink{50%{opacity:.25}}
+  .cap{padding:1px 13px 6px;font-size:13px;line-height:1.35}.cap b{margin-right:5px}
+  .comments{padding:0 13px 4px}
+  .cmt{font-size:12.5px;line-height:1.5;padding:1px 0}.cmt b{margin-right:5px}
+  .cmt.pending{color:#9aa0b4}
+  .cmt .cdot{display:inline-block;width:5px;height:5px;border-radius:50%;background:#c7ccdd;margin-left:5px;animation:blink 1s infinite}
+  .cmt .cdot.hidden{display:none}
+  .chips{display:flex;gap:6px;flex-wrap:wrap;padding:4px 13px 2px}
+  .chips button{font:400 12px "Space Grotesk";color:#555;background:#f1f1f4;border:0;border-radius:16px;padding:5px 10px;cursor:pointer}
+  .chips button:active{background:#e3e3ea}
+  .cmt-row{display:flex;gap:8px;align-items:center;padding:5px 13px 12px}
+  .cmt-row input{flex:1;border:1px solid #e3e3e8;border-radius:20px;padding:7px 11px;font:400 12.5px "Space Grotesk";outline:none}
+  .cmt-row input:focus{border-color:#b9c0ff}
+
+  .tap-hint{text-align:center;font-size:12.5px;color:var(--t-lo);font-family:"Space Mono",monospace;margin-top:12px;line-height:1.7}
+
+  /* board */
+  .board-col{display:flex;flex-direction:column;gap:16px}
+  .board{position:relative;padding:14px}
+  .cardhead{display:flex;justify-content:space-between;align-items:center;padding:6px 8px 8px;flex-wrap:wrap;gap:10px}
+  .cardhead h2{margin:0;font-size:15px;font-weight:600}
+  .net-select{display:flex;gap:6px}
+  .net-select button{font:500 12.5px "Space Grotesk";color:var(--t-lo);cursor:pointer;background:rgba(255,255,255,.03);border:1px solid var(--line);border-radius:10px;padding:7px 11px;transition:.15s}
+  .net-select button:hover{color:var(--t-hi);border-color:#3a44a0}
+  .net-select button.on{color:#0a0d20;background:var(--server);border-color:var(--server);font-weight:600}
+  .net-select button.on.slow{background:var(--warn)}
+  .net-select button.on.off{background:var(--err)}
+  svg.map{display:block;width:100%;height:auto}
+  .track{fill:none;stroke:var(--line);stroke-width:3}
+  .track.flow{stroke:rgba(167,139,250,.3);stroke-width:2.5;stroke-dasharray:2 12;stroke-linecap:round;animation:dash 1.1s linear infinite}
+  @keyframes dash{to{stroke-dashoffset:-14}}
+  .node-label{font:600 12.5px "Space Grotesk";fill:var(--t-hi)}
+  .node-sub{font:400 10px "Space Mono";fill:var(--t-dim)}
+  .callout{position:absolute;transform:translate(-50%,-118%);background:#0c1030;border:1px solid var(--line);color:var(--t-hi);font-size:12px;padding:8px 11px;border-radius:12px;white-space:nowrap;pointer-events:none;opacity:0;transition:opacity .2s,transform .2s;font-family:"Space Mono",monospace;box-shadow:0 10px 24px rgba(0,0,0,.4);z-index:3}
+  .callout.show{opacity:1;transform:translate(-50%,-135%)}
+  .callout::after{content:"";position:absolute;left:50%;bottom:-6px;width:11px;height:11px;background:#0c1030;border-right:1px solid var(--line);border-bottom:1px solid var(--line);transform:translateX(-50%) rotate(45deg)}
+  .callout .ln{display:block;line-height:1.5}
+  .callout .ok{color:var(--ok)}.callout .bad{color:var(--err)}.callout .cy{color:var(--read)}
+
+  .lower{display:grid;grid-template-columns:1.35fr 1fr;gap:16px}
+  @media(max-width:640px){.lower{grid-template-columns:1fr}}
+  .console{padding:14px 16px;min-height:200px}
+  .console h3,.stats h3,.dbp h3,.cachep h3{margin:0 0 10px;font:700 12px "Space Mono";letter-spacing:.2em;text-transform:uppercase;color:var(--t-dim);display:flex;align-items:center;gap:8px}
+  .rec{width:8px;height:8px;border-radius:50%;background:var(--ok);box-shadow:0 0 10px var(--ok)}
+  .log{font-family:"Space Mono",monospace;font-size:12.5px;line-height:1.7;max-height:260px;overflow:auto}
+  .log .row{display:flex;gap:10px;opacity:0;transform:translateY(4px);animation:in .25s forwards}
+  @keyframes in{to{opacity:1;transform:none}}
+  .log .t{color:var(--t-dim);flex:0 0 auto}
+  .log .m{color:var(--t-lo)}
+  .log .m.ok{color:var(--ok)}.log .m.err{color:var(--err)}.log .m.warn{color:var(--warn)}
+  .log .m.like{color:var(--like)}.log .m.comment{color:var(--comment)}.log .m.post{color:var(--post)}.log .m.read{color:var(--read)}
+  .log .m.srv{color:var(--server)}.log .m.db{color:var(--db)}.log .m.cache{color:var(--read)}
+  .rightcol{display:flex;flex-direction:column;gap:16px}
+  .stats,.dbp,.cachep{padding:14px 16px}
+  .sgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .stat{background:rgba(255,255,255,.03);border:1px solid var(--line);border-radius:14px;padding:11px 12px}
+  .stat .k{font:400 11px "Space Mono";color:var(--t-dim)}
+  .stat .v{font-size:22px;font-weight:700;margin-top:3px}
+  .stat .v small{font-size:12px;color:var(--t-lo);font-weight:400}
+  .stat.best .v{color:var(--ok)}.stat.streak .v{color:var(--like)}
+  .row3{display:flex;gap:10px}
+  .dbcell{flex:1;text-align:center;border-radius:14px;padding:11px 6px;background:rgba(52,211,153,.07);border:1px solid rgba(52,211,153,.28)}
+  .dbcell .v{font-size:22px;font-weight:700;color:var(--db)}
+  .dbcell .k{font:400 11px "Space Mono";color:var(--t-dim);margin-top:2px}
+  .dbcell.flash{animation:cellflash .5s}
+  @keyframes cellflash{0%{filter:brightness(1.9)}100%{filter:brightness(1)}}
+  .dbcell.hit{background:rgba(34,211,238,.08);border-color:rgba(34,211,238,.3)}.dbcell.hit .v{color:var(--read)}
+  .dbcell.miss{background:rgba(255,176,32,.08);border-color:rgba(255,176,32,.3)}.dbcell.miss .v{color:var(--warn)}
+  .cache-status{font:700 13px "Space Mono";text-align:center;padding:9px;border-radius:12px;margin-bottom:10px;border:1px solid var(--line);color:var(--t-lo);transition:.2s}
+  .cache-status.fresh{color:#04222a;background:var(--read);border-color:var(--read)}
+
+  .foot{margin-top:24px;color:var(--t-dim);font-size:12.5px;text-align:center;line-height:1.6}
+  .foot b{color:var(--t-lo)}
+  @media(prefers-reduced-motion:reduce){.track.flow{animation:none}.ic.spin{animation:none}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <p class="eyebrow">Client &rarr; Server &rarr; Cache &rarr; Database</p>
+      <h1>The journey of a request</h1>
+      <p class="sub">Like, comment, or share to <b>write</b> data. Hit <b>Refresh</b> to <b>read</b> it &mdash; and watch the cache serve repeat reads instantly instead of bothering the database.</p>
+    </div>
+    <div class="legend">
+      <div class="chip"><span class="dot" style="background:var(--server)"></span><b>Server</b></div>
+      <div class="chip"><span class="dot" style="background:var(--cache)"></span><b>Cache</b>&nbsp;fast memory</div>
+      <div class="chip"><span class="dot" style="background:var(--db)"></span><b>Database</b>&nbsp;source of truth</div>
+    </div>
+  </header>
+
+  <div class="grid">
+    <!-- PHONE -->
+    <div>
+      <div class="phone">
+        <div class="screen">
+          <div class="st-bar"><span>9:41</span><span>&#9679;&#9679;&#9679; &#128246; &#128267;</span></div>
+          <div class="ig-top"><span class="ig-logo">Instagram</span><span style="font-size:15px">&#9993;&#65039;</span></div>
+          <div class="compose">
+            <input id="composeInput" maxlength="90" placeholder="Share a new post&hellip;" />
+            <button class="btn share" id="shareBtn">Share</button>
+          </div>
+          <div class="refresh-bar">
+            <button class="btn read" id="refreshBtn"><span class="ic" id="refreshIc">&#8635;</span>&nbsp;Refresh feed</button>
+            <span class="ep" id="refreshMeta">GET /feed</span>
+          </div>
+          <div class="feed" id="feed"></div>
+        </div>
+      </div>
+      <p class="tap-hint">Write: <b>&#9829;</b> like &middot; &#128172; comment &middot; &#9995; post<br>Read: &#8635; refresh &mdash; try it twice in a row!</p>
+    </div>
+
+    <!-- BOARD -->
+    <div class="board-col">
+      <div class="panel board" id="boardPanel">
+        <div class="cardhead">
+          <h2>The request route</h2>
+          <div class="net-select" id="netSel">
+            <button data-net="fast" class="on">&#128246; Wi-Fi</button>
+            <button data-net="slow">&#128034; 3G</button>
+            <button data-net="off">&#9992;&#65039; Offline</button>
+          </div>
+        </div>
+        <svg class="map" id="map" viewBox="0 0 1000 360" preserveAspectRatio="xMidYMid meet">
+          <defs><filter id="soft" x="-60%" y="-60%" width="220%" height="220%">
+            <feGaussianBlur stdDeviation="6" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>
+          <path id="outPath" class="track" d="M100,118 L900,118"/>
+          <path id="outFlow" class="track flow" d="M100,118 L900,118"/>
+          <path id="retPath" class="track" d="M900,118 C956,118 960,205 905,246 C862,280 640,284 520,284 C320,284 150,284 100,284 C58,284 52,173 100,118"/>
+          <path id="retFlow" class="track flow" style="stroke:rgba(47,224,160,.3)" d="M900,118 C956,118 960,205 905,246 C862,280 640,284 520,284 C320,284 150,284 100,284 C58,284 52,173 100,118"/>
+
+          <g class="node" id="n-you">
+            <rect class="nb" x="48" y="86" width="104" height="64" rx="14" fill="#141a3e" stroke="var(--like)"/>
+            <text x="100" y="114" text-anchor="middle" font-size="21">&#128241;</text>
+            <text class="node-label" x="100" y="170" text-anchor="middle">You</text>
+            <text class="node-sub" x="100" y="185" text-anchor="middle">frontend</text>
+          </g>
+          <g class="node" id="n-srv">
+            <rect class="nb" x="328" y="86" width="104" height="64" rx="14" fill="#141a3e" stroke="var(--server)"/>
+            <text x="380" y="116" text-anchor="middle" font-size="21">&#128421;&#65039;</text>
+            <text class="node-label" x="380" y="170" text-anchor="middle">Server</text>
+            <text class="node-sub" x="380" y="185" text-anchor="middle">backend</text>
+          </g>
+          <g class="node" id="n-cache">
+            <rect class="nb" x="578" y="86" width="104" height="64" rx="14" fill="#141a3e" stroke="var(--cache)"/>
+            <text x="630" y="116" text-anchor="middle" font-size="21">&#9889;</text>
+            <text class="node-label" x="630" y="170" text-anchor="middle">Cache</text>
+            <text class="node-sub" x="630" y="185" text-anchor="middle">fast memory</text>
+          </g>
+          <g class="node" id="n-db">
+            <rect class="nb" x="848" y="86" width="104" height="64" rx="14" fill="#141a3e" stroke="var(--db)"/>
+            <text x="900" y="116" text-anchor="middle" font-size="21">&#128190;</text>
+            <text class="node-label" x="900" y="170" text-anchor="middle">Database</text>
+            <text class="node-sub" x="900" y="185" text-anchor="middle">stores data</text>
+          </g>
+          <g id="packets"></g>
+        </svg>
+        <div class="callout" id="co-srv"></div>
+        <div class="callout" id="co-cache"></div>
+        <div class="callout" id="co-db"></div>
+        <div class="callout" id="co-you"></div>
+        <div class="callout" id="co-mid"></div>
+      </div>
+
+      <div class="lower">
+        <div class="panel console">
+          <h3><span class="rec"></span> Network console</h3>
+          <div class="log" id="log"></div>
+        </div>
+        <div class="rightcol">
+          <div class="panel stats">
+            <h3>Trip stats</h3>
+            <div class="sgrid">
+              <div class="stat"><div class="k">requests</div><div class="v" id="sTotal">0</div></div>
+              <div class="stat best"><div class="k">fastest</div><div class="v" id="sBest">&mdash;</div></div>
+              <div class="stat"><div class="k">last trip</div><div class="v" id="sLast">&mdash;</div></div>
+              <div class="stat streak"><div class="k">streak</div><div class="v" id="sStreak">0</div></div>
+            </div>
+          </div>
+          <div class="panel cachep">
+            <h3>&#9889; Cache (server-side)</h3>
+            <div class="cache-status" id="cacheStatus">EMPTY</div>
+            <div class="row3">
+              <div class="dbcell hit" id="cHits"><div class="v">0</div><div class="k">hits</div></div>
+              <div class="dbcell miss" id="cMiss"><div class="v">0</div><div class="k">misses</div></div>
+            </div>
+          </div>
+          <div class="panel dbp">
+            <h3>&#128190; Database contents</h3>
+            <div class="row3">
+              <div class="dbcell" id="dbPosts"><div class="v">1</div><div class="k">posts</div></div>
+              <div class="dbcell" id="dbLikes"><div class="v">1,200</div><div class="k">likes</div></div>
+              <div class="dbcell" id="dbComments"><div class="v">2</div><div class="k">comments</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <p class="foot">
+    <b>Writes</b> (like / comment / post) always travel to the database &mdash; and clear the cache on the way, because the data just changed.<br>
+    <b>Reads</b> (refresh) check the cache first: a <b>hit</b> skips the database and comes back fast; a <b>miss</b> fetches from the database and refills the cache. The cache also expires on its own after a few seconds (its TTL).
+  </p>
+</div>
+
+<script>
+(function(){
+  "use strict";
+  var reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  var $=function(id){return document.getElementById(id);};
+  function rand(a,b){return a+Math.random()*(b-a);}
+  function fmt(n){return n.toLocaleString("en-US");}
+  function now(){return new Date().toTimeString().slice(0,8);}
+  function T(){return performance.now();}
+
+  // ---------- state ----------
+  var db={posts:1,likes:1200,comments:2};
+  var cache={validUntil:0, ttl:8000, hits:0, misses:0, everFilled:false,
+    isFresh:function(){return T()<this.validUntil;},
+    fill:function(){this.validUntil=T()+this.ttl;this.everFilled=true;},
+    invalidate:function(){this.validUntil=0;}};
+  var net="fast", inFlight=0, MAXFLIGHT=6;
+  var totalReqs=0, streak=0, best=null;
+  var pid=1, cid=1;
+  var NET={
+    fast:{out:[720,980],back:[460,660],rtt:[26,80]},
+    slow:{out:[1800,2400],back:[1200,1600],rtt:[250,760]},
+    off:{out:[700,900],back:[0,0],rtt:[0,0]}
+  };
+
+  // ---------- els ----------
+  var feedEl=$("feed"), logEl=$("log"), packetsG=$("packets"), map=$("map");
+  var outPath=$("outPath"), retPath=$("retPath");
+  var nodes={you:$("n-you"),srv:$("n-srv"),cache:$("n-cache"),db:$("n-db")};
+  var co={srv:$("co-srv"),cache:$("co-cache"),db:$("co-db"),you:$("co-you"),mid:$("co-mid")};
+  var POS={you:[100,118],srv:[380,118],cache:[630,118],db:[900,118]};
+
+  // ---------- console ----------
+  function log(msg,cls){
+    var r=document.createElement("div");r.className="row";
+    r.innerHTML='<span class="t">'+now()+'</span><span class="m '+(cls||"")+'">'+msg+'</span>';
+    logEl.insertBefore(r,logEl.firstChild);
+    while(logEl.children.length>34)logEl.removeChild(logEl.lastChild);
+  }
+
+  // ---------- panels ----------
+  function updateDB(which){
+    $("dbPosts").querySelector(".v").textContent=fmt(db.posts);
+    $("dbLikes").querySelector(".v").textContent=fmt(db.likes);
+    $("dbComments").querySelector(".v").textContent=fmt(db.comments);
+    if(which){var c=$("db"+which);if(c){c.classList.remove("flash");void c.offsetWidth;c.classList.add("flash");}}
+  }
+  function updateCache(which){
+    $("cHits").querySelector(".v").textContent=fmt(cache.hits);
+    $("cMiss").querySelector(".v").textContent=fmt(cache.misses);
+    if(which){var c=$(which);if(c){c.classList.remove("flash");void c.offsetWidth;c.classList.add("flash");}}
+  }
+  function cacheStatusLoop(){
+    var el=$("cacheStatus");
+    if(cache.isFresh()){el.className="cache-status fresh";el.textContent="FRESH \u00b7 "+Math.ceil((cache.validUntil-T())/1000)+"s left";}
+    else{el.className="cache-status";el.textContent=cache.everFilled?"EMPTY (cleared / expired)":"EMPTY";}
+  }
+
+  // ---------- geometry ----------
+  function lengthAtPoint(path,tx,ty){
+    var total=path.getTotalLength(),bl=0,bd=Infinity,i,step=total/240;
+    for(i=0;i<=total;i+=step){var p=path.getPointAtLength(i),d=(p.x-tx)*(p.x-tx)+(p.y-ty)*(p.y-ty);if(d<bd){bd=d;bl=i;}}
+    for(i=Math.max(0,bl-step);i<=Math.min(total,bl+step);i+=step/25){var q=path.getPointAtLength(i),e=(q.x-tx)*(q.x-tx)+(q.y-ty)*(q.y-ty);if(e<bd){bd=e;bl=i;}}
+    return bl;
+  }
+  var OUT={},RET={};
+  function computeLengths(){
+    OUT.total=outPath.getTotalLength();
+    OUT.srv=lengthAtPoint(outPath,POS.srv[0],POS.srv[1]);
+    OUT.cache=lengthAtPoint(outPath,POS.cache[0],POS.cache[1]);
+    OUT.db=OUT.total;
+    RET.total=retPath.getTotalLength(); RET.you=RET.total;
+  }
+  function svgToPanel(x,y){
+    var pt=map.createSVGPoint();pt.x=x;pt.y=y;var p=pt.matrixTransform(map.getScreenCTM());
+    var h=$("boardPanel").getBoundingClientRect();return{left:p.x-h.left,top:p.y-h.top};
+  }
+  function callout(el,x,y,html,ms){var pos=svgToPanel(x,y);el.style.left=pos.left+"px";el.style.top=pos.top+"px";el.innerHTML=html;el.classList.add("show");setTimeout(function(){el.classList.remove("show");},ms||1300);}
+  function flashNode(node,ms){node.querySelector(".nb").style.filter="url(#soft)";setTimeout(function(){node.querySelector(".nb").style.filter="";},ms||700);}
+
+  // ---------- packets ----------
+  var HEART='<path transform="translate(-11,-11) scale(0.92)" d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>';
+  var BUBBLE='<path transform="translate(-11,-11)" d="M21 11.5a8.5 8.5 0 0 1-11.9 7.8L3 21l1.7-6A8.5 8.5 0 1 1 21 11.5z"/>';
+  var CAM='<g transform="translate(-11,-9)"><rect x="1" y="4" width="22" height="15" rx="3"/><circle cx="12" cy="11.5" r="4" fill="#141a3e"/></g>';
+  var DOC='<rect transform="translate(-9,-11)" x="0" y="0" width="18" height="22" rx="3"/>';
+  var SHAPES={like:HEART,comment:BUBBLE,post:CAM,read:DOC,ok:HEART};
+  function makePacket(color,shape){
+    var g=document.createElementNS("http://www.w3.org/2000/svg","g");
+    g.innerHTML='<g filter="url(#soft)"><g fill="'+color+'">'+(SHAPES[shape]||HEART)+'</g></g>';
+    g.setAttribute("opacity","0");packetsG.appendChild(g);return g;
+  }
+  function rm(el){if(el&&el.parentNode)el.parentNode.removeChild(el);}
+  function trail(x,y,color){
+    if(reduce)return;var c=document.createElementNS("http://www.w3.org/2000/svg","circle");
+    c.setAttribute("cx",x);c.setAttribute("cy",y);c.setAttribute("r","5");c.setAttribute("fill",color);c.setAttribute("opacity","0.5");
+    packetsG.insertBefore(c,packetsG.firstChild);var s=1;
+    (function f(){s-=0.1;if(s<=0){rm(c);return;}c.setAttribute("opacity",(s*0.5).toFixed(3));c.setAttribute("r",(5-(1-s)*3).toFixed(2));requestAnimationFrame(f);})();
+  }
+  function travel(path,pkt,color,L0,L1,dur,marks,done){
+    pkt.setAttribute("opacity","1");var start=null,fired={},lt=0,fwd=L1>=L0;
+    function ease(t){return t<0.5?2*t*t:1-Math.pow(-2*t+2,2)/2;}
+    function frame(ts){if(start===null)start=ts;var t=Math.min(1,(ts-start)/dur),L=L0+(L1-L0)*ease(t),p=path.getPointAtLength(L);
+      pkt.setAttribute("transform","translate("+p.x+","+p.y+")");
+      if(ts-lt>28){trail(p.x,p.y,color);lt=ts;}
+      if(marks)for(var i=0;i<marks.length;i++){var m=marks[i],cr=fwd?(L>=m.at):(L<=m.at);if(cr&&!fired[i]){fired[i]=true;m.fn(p);}}
+      if(t<1)requestAnimationFrame(frame);else done();
+    }requestAnimationFrame(frame);
+  }
+
+  // ---------- request lifecycle ----------
+  function runRequest(opts){
+    if(inFlight>=MAXFLIGHT){log("&#9888; too many requests in flight &mdash; ease up!","warn");if(opts.onFail)opts.onFail(true);return;}
+    inFlight++;totalReqs++;$("sTotal").textContent=totalReqs;
+    var conf=NET[net],offline=(net==="off"),isRead=(opts.mode==="read");
+    var outDur=reduce?260:rand(conf.out[0],conf.out[1]);
+    var backDur=reduce?260:rand(conf.back[0],conf.back[1]);
+    var col=opts.color;
+    log("&rarr; "+(isRead?"GET ":"POST ")+opts.endpoint+" &mdash; "+opts.type+" request sent",opts.type);
+    var pkt=makePacket(col,opts.type);
+
+    function serverStep(){
+      flashNode(nodes.srv,1000);
+      var h="";for(var i=0;i<opts.steps.length;i++)h+='<span class="ln ok">&#10003; '+opts.steps[i]+'</span>';
+      callout(co.srv,POS.srv[0],POS.srv[1],h,1300);
+      log("server: "+opts.steps.join(", "),"srv");
+    }
+    function cacheInvalidate(){
+      flashNode(nodes.cache,900);cache.invalidate();
+      callout(co.cache,POS.cache[0],POS.cache[1],'<span class="ln bad">&#128465; cache cleared</span><span class="ln">data changed</span>',1200);
+      log("cache invalidated &mdash; data changed","cache");
+    }
+    function finalize(shown){
+      flashNode(nodes.you,700);
+      $("sLast").innerHTML=shown+'<small>&nbsp;ms</small>';
+      if(best===null||shown<best){best=shown;$("sBest").innerHTML=best+'<small>&nbsp;ms</small>';}
+      streak++;$("sStreak").textContent=streak;
+      callout(co.you,POS.you[0],POS.you[1],'<span class="ln ok">&#10003; '+shown+'ms</span>',1100);
+      inFlight--;
+    }
+    function fail(){
+      if(opts.onFail)opts.onFail(false);
+      streak=0;$("sStreak").textContent="0";
+      log("&#10007; "+opts.type+" failed &mdash; "+(isRead?"couldn't reach the server":"change rolled back"),"err");
+      if(isRead)log("(a server-side cache still needs a network hop &mdash; offline can't reach it)","warn");
+      inFlight--;
+    }
+
+    if(offline){
+      travel(outPath,pkt,col,0,OUT.srv*0.5,outDur*0.55,null,function(p){
+        callout(co.mid,p.x,p.y,'<span class="ln bad">&#10007; no connection</span>',1100);
+        travel(outPath,pkt,"var(--err)",OUT.srv*0.5,0,outDur*0.5,null,function(){rm(pkt);fail();});
+      });
+      return;
+    }
+
+    var toCache=outDur*(OUT.cache/OUT.db);
+    var cacheToDb=outDur*((OUT.db-OUT.cache)/OUT.db);
+
+    if(!isRead){
+      // ---- WRITE ----
+      var marks=[{at:OUT.srv,fn:serverStep},{at:OUT.cache,fn:cacheInvalidate}];
+      travel(outPath,pkt,col,0,OUT.db,outDur,marks,function(){
+        flashNode(nodes.db,1000);
+        var r=opts.onDB();
+        callout(co.db,POS.db[0],POS.db[1],r.callout,1400);
+        log("database: "+r.log,"db");
+        rm(pkt);
+        var pk2=makePacket("var(--ok)","ok");
+        travel(retPath,pk2,"var(--ok)",0,RET.you,backDur,null,function(){
+          if(opts.onConfirm)opts.onConfirm();
+          var shown=Math.round(rand(conf.rtt[0],conf.rtt[1]));
+          finalize(shown);
+          log("&#10003; success &mdash; UI confirmed ("+shown+"ms)","ok");
+          rm(pk2);
+        });
+      });
+      return;
+    }
+
+    // ---- READ ----
+    var hit=cache.isFresh();
+    travel(outPath,pkt,col,0,OUT.cache,toCache,[{at:OUT.srv,fn:serverStep}],function(){
+      if(hit){
+        cache.hits++;updateCache("cHits");flashNode(nodes.cache,900);
+        callout(co.cache,POS.cache[0],POS.cache[1],'<span class="ln cy">&#9889; cache HIT</span><span class="ln">served from memory</span>',1400);
+        log("cache HIT &mdash; database not needed","cache");
+        travel(outPath,pkt,"var(--ok)",OUT.cache,0,toCache,null,function(){
+          rm(pkt);
+          var shown=Math.max(3,Math.round(rand(conf.rtt[0],conf.rtt[1])*0.4));
+          finalize(shown);finishRead(true,shown);
+        });
+      }else{
+        cache.misses++;updateCache("cMiss");flashNode(nodes.cache,900);
+        callout(co.cache,POS.cache[0],POS.cache[1],'<span class="ln bad">&#10007; cache MISS</span><span class="ln">ask the database</span>',1300);
+        log("cache MISS &mdash; going to the database","warn");
+        travel(outPath,pkt,col,OUT.cache,OUT.db,cacheToDb,null,function(){
+          flashNode(nodes.db,1000);
+          cache.fill();
+          callout(co.db,POS.db[0],POS.db[1],'<span class="ln db">&#128214; read from DB</span><span class="ln cy">&#9889; cache filled</span>',1400);
+          log("read from database, then filled the cache","db");
+          flashNode(nodes.cache,900);
+          rm(pkt);
+          var pk2=makePacket("var(--ok)","ok");
+          travel(retPath,pk2,"var(--ok)",0,RET.you,backDur,null,function(){
+            rm(pk2);
+            var shown=Math.round(rand(conf.rtt[0],conf.rtt[1]))+(net==="slow"?140:40);
+            finalize(shown);finishRead(false,shown);
+          });
+        });
+      }
+    });
+
+    function finishRead(wasHit,shown){
+      var ic=$("refreshIc"),btn=$("refreshBtn"),meta=$("refreshMeta");
+      ic.classList.remove("spin");btn.disabled=false;
+      meta.className="ep "+(wasHit?"hit":"miss");
+      meta.textContent=wasHit?("served from cache \u00b7 "+shown+"ms"):("from database \u00b7 "+shown+"ms");
+      setTimeout(function(){meta.className="ep";meta.textContent="GET /feed";},2200);
+      log("&#10003; feed refreshed "+(wasHit?"from cache":"from the database")+" ("+shown+"ms)","ok");
+    }
+  }
+
+  // ---------- feed ----------
+  var feed=[];
+  function esc(s){return s.replace(/[&<>"]/g,function(m){return{"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;"}[m];});}
+  function buildComment(c){
+    var d=document.createElement("div");d.className="cmt"+(c._pending?" pending":"");
+    d.innerHTML='<b>'+c.user+'</b>'+esc(c.text)+'<span class="cdot'+(c._pending?"":" hidden")+'"></span>';
+    c._el=d;return d;
+  }
+  function refreshLikes(post){
+    var pend=0;post._pending.forEach(function(t){pend+=t.delta;});
+    post._num.textContent=fmt(post.likesConfirmed+pend);
+    if(post.liked)post._likeBtn.classList.add("on");else post._likeBtn.classList.remove("on");
+    if(post._pending.length){post._likesRow.classList.add("pending");post._pdot.classList.remove("hidden");}
+    else{post._likesRow.classList.remove("pending");post._pdot.classList.add("hidden");}
+  }
+  function buildPost(post){
+    var el=document.createElement("div");el.className="post";el.dataset.id=post.id;
+    var media=post.kind==="photo"
+      ?'<div class="photo"><div class="mtn"></div><div class="water"></div><div class="sun"></div></div>'
+      :'<div class="textbody">'+esc(post.caption)+'</div>';
+    el.innerHTML=
+      '<div class="head"><div class="ava"><span></span></div><div><b>'+post.user+'</b><small>'+post.sub+'</small></div></div>'
+      +media
+      +'<div class="actions">'
+        +'<button class="iac likeBtn'+(post.liked?" on":"")+'" aria-label="Like"><svg width="25" height="25" viewBox="0 0 24 24" fill="none" stroke="#222" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg></button>'
+        +'<button class="iac cmtFocus" aria-label="Comment"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#222" stroke-width="1.7"><path d="M21 11.5a8.5 8.5 0 0 1-11.9 7.8L3 21l1.7-6A8.5 8.5 0 1 1 21 11.5z"/></svg></button>'
+      +'</div>'
+      +'<div class="likes"><span class="num"></span>&nbsp;likes <span class="pdot hidden"></span></div>'
+      +(post.kind==="photo"?'<div class="cap"><b>'+post.user+'</b>'+esc(post.caption)+'</div>':'')
+      +'<div class="comments"></div>'
+      +'<div class="chips"></div>'
+      +'<div class="cmt-row"><input maxlength="80" placeholder="Add a comment&hellip;" /><button class="btn send">Post</button></div>';
+
+    post._el=el;
+    post._likeBtn=el.querySelector(".likeBtn");
+    post._likesRow=el.querySelector(".likes");
+    post._num=el.querySelector(".likes .num");
+    post._pdot=el.querySelector(".likes .pdot");
+    post._comments=el.querySelector(".comments");
+    var input=el.querySelector(".cmt-row input");
+    post.comments.forEach(function(c){post._comments.appendChild(buildComment(c));});
+    refreshLikes(post);
+
+    var chipWrap=el.querySelector(".chips");
+    [["\uD83D\uDD25","\uD83D\uDD25"],["Love this!","Love this!"],["Where is this?","Where is this?"]].forEach(function(p){
+      var b=document.createElement("button");b.textContent=p[0];
+      b.onclick=function(){input.value=p[1];input.focus();};chipWrap.appendChild(b);
+    });
+    post._likeBtn.onclick=function(){doLike(post);};
+    el.querySelector(".cmtFocus").onclick=function(){input.focus();};
+    function submit(){var v=input.value.trim();if(!v)return;doComment(post,v);input.value="";}
+    el.querySelector(".btn.send").onclick=submit;
+    input.addEventListener("keydown",function(e){if(e.key==="Enter")submit();});
+    return el;
+  }
+
+  // ---------- actions ----------
+  function doLike(post){
+    post.liked=!post.liked;
+    var delta=post.liked?1:-1,ticket={delta:delta};
+    post._pending.push(ticket);refreshLikes(post);
+    post._likeBtn.classList.remove("pop");void post._likeBtn.offsetWidth;post._likeBtn.classList.add("pop");
+    runRequest({
+      mode:"write",type:"like",color:"var(--like)",endpoint:"/posts/"+post.id+"/likes",
+      steps:["verify user","check post"],
+      onDB:function(){post.likesConfirmed+=delta;db.likes+=delta;updateDB("Likes");refreshLikes(post);
+        return{callout:'<span class="ln db">&#128190; likes &rarr; <b class="ok">'+fmt(db.likes)+'</b></span>',log:"likes now "+fmt(db.likes)};},
+      onConfirm:function(){var i=post._pending.indexOf(ticket);if(i>-1)post._pending.splice(i,1);refreshLikes(post);},
+      onFail:function(){post.liked=!post.liked;var i=post._pending.indexOf(ticket);if(i>-1)post._pending.splice(i,1);refreshLikes(post);}
+    });
+  }
+  function doComment(post,text){
+    var c={id:cid++,user:"you",text:text,_pending:true};
+    post.comments.push(c);post._comments.appendChild(buildComment(c));
+    runRequest({
+      mode:"write",type:"comment",color:"var(--comment)",endpoint:"/posts/"+post.id+"/comments",
+      steps:["verify user","clean the text"],
+      onDB:function(){db.comments+=1;updateDB("Comments");
+        return{callout:'<span class="ln db">&#128172; saved &middot; <b class="ok">'+fmt(db.comments)+'</b></span>',log:"stored comment ("+fmt(db.comments)+" total)"};},
+      onConfirm:function(){c._pending=false;if(c._el){c._el.classList.remove("pending");var d=c._el.querySelector(".cdot");if(d)d.classList.add("hidden");}},
+      onFail:function(){var i=post.comments.indexOf(c);if(i>-1)post.comments.splice(i,1);rm(c._el);}
+    });
+  }
+  function doPost(caption){
+    var post={id:pid++,kind:"text",user:"you",sub:"just now",caption:caption,likesConfirmed:0,liked:false,_pending:[],comments:[]};
+    feed.unshift(post);
+    var el=buildPost(post);el.classList.add("pending");
+    var badge=document.createElement("span");badge.className="badge";badge.innerHTML="posting&hellip;";
+    el.querySelector(".head").appendChild(badge);
+    feedEl.insertBefore(el,feedEl.firstChild);feedEl.scrollTop=0;
+    runRequest({
+      mode:"write",type:"post",color:"var(--post)",endpoint:"/posts",
+      steps:["verify user","validate content"],
+      onDB:function(){db.posts+=1;updateDB("Posts");
+        return{callout:'<span class="ln db">&#128193; post #'+post.id+' &middot; <b class="ok">'+fmt(db.posts)+'</b></span>',log:"created post #"+post.id+" ("+fmt(db.posts)+" total)"};},
+      onConfirm:function(){post._el.classList.remove("pending");var b=post._el.querySelector(".badge");if(b)rm(b);},
+      onFail:function(){var i=feed.indexOf(post);if(i>-1)feed.splice(i,1);rm(post._el);}
+    });
+  }
+  function doRead(){
+    var ic=$("refreshIc"),btn=$("refreshBtn"),meta=$("refreshMeta");
+    ic.classList.add("spin");btn.disabled=true;meta.className="ep";meta.textContent="loading\u2026";
+    runRequest({
+      mode:"read",type:"read",color:"var(--read)",endpoint:"/feed",
+      steps:["verify session","route to feed"],
+      onFail:function(over){ic.classList.remove("spin");btn.disabled=false;meta.className="ep err";meta.textContent=over?"too busy":"failed";
+        setTimeout(function(){meta.className="ep";meta.textContent="GET /feed";},2000);}
+    });
+  }
+
+  // ---------- boot ----------
+  function seed(){
+    var s={id:pid++,kind:"photo",user:"wanderframe",sub:"Lake Aurelia",
+      caption:"golden hour never misses \uD83C\uDF05",
+      likesConfirmed:1200,liked:false,_pending:[],
+      comments:[{id:cid++,user:"maya.k",text:"unreal \uD83D\uDE0D"},{id:cid++,user:"devon",text:"need to go here"}]};
+    feed.push(s);feedEl.appendChild(buildPost(s));
+  }
+
+  $("shareBtn").onclick=function(){var v=$("composeInput").value.trim();if(!v){$("composeInput").focus();return;}doPost(v);$("composeInput").value="";};
+  $("composeInput").addEventListener("keydown",function(e){if(e.key==="Enter")$("shareBtn").click();});
+  $("refreshBtn").onclick=doRead;
+  $("netSel").addEventListener("click",function(e){var b=e.target.closest("button");if(!b)return;net=b.getAttribute("data-net");
+    var bs=this.querySelectorAll("button");for(var i=0;i<bs.length;i++)bs[i].className="";
+    b.className="on"+(net==="slow"?" slow":net==="off"?" off":"");
+    log("network set to "+({fast:"Wi-Fi (fast)",slow:"3G (slow)",off:"Offline"}[net]),net==="off"?"warn":"srv");
+  });
+
+  function boot(){
+    computeLengths();seed();updateDB();updateCache();cacheStatusLoop();
+    setInterval(cacheStatusLoop,250);
+    log("ready \u2014 write with like/comment/post, or refresh to read","ok");
+    log("tip: refresh twice fast to see a cache HIT","cache");
+  }
+  if(document.readyState!=="loading")boot();else document.addEventListener("DOMContentLoaded",boot);
+})();
+</script>
+</body>
+</html>
