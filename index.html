@@ -13,7 +13,7 @@
     --paper:#ffffff; --t-hi:#f3f5ff; --t-lo:#98a2d6; --t-dim:#5f699e;
     --heart:#ff2d55;
     --like:#ff4d7d; --comment:#7c8dff; --post:#ffb020; --read:#22d3ee; --ok:#2fe0a0;
-    --server:#a78bfa; --cache:#22d3ee; --db:#34d399; --err:#ff5a6a; --warn:#ffb020;
+    --dns:#fb923c; --server:#a78bfa; --cache:#22d3ee; --db:#34d399; --err:#ff5a6a; --warn:#ffb020;
   }
   *{box-sizing:border-box} html,body{margin:0}
   body{font-family:"Space Grotesk",system-ui,sans-serif;color:var(--t-hi);
@@ -25,9 +25,9 @@
   .wrap{max-width:1180px;margin:0 auto;padding:26px 22px 56px}
 
   header{display:flex;flex-wrap:wrap;gap:18px 24px;align-items:flex-end;justify-content:space-between;margin-bottom:20px}
-  .eyebrow{font-family:"Space Mono",monospace;font-size:12px;letter-spacing:.28em;text-transform:uppercase;color:var(--t-dim);margin:0 0 8px}
+  .eyebrow{font-family:"Space Mono",monospace;font-size:12px;letter-spacing:.24em;text-transform:uppercase;color:var(--t-dim);margin:0 0 8px}
   h1{font-size:clamp(27px,4.4vw,44px);line-height:1.02;margin:0;font-weight:700;letter-spacing:-.02em}
-  .sub{color:var(--t-lo);margin:10px 0 0;max-width:54ch;font-size:15px;line-height:1.5}
+  .sub{color:var(--t-lo);margin:10px 0 0;max-width:56ch;font-size:15px;line-height:1.5}
   .legend{display:flex;gap:8px;flex-wrap:wrap}
   .chip{display:flex;align-items:center;gap:8px;background:rgba(255,255,255,.04);border:1px solid var(--line);border-radius:999px;padding:7px 12px;font-size:12.5px;color:var(--t-lo)}
   .chip b{color:var(--t-hi);font-weight:600}
@@ -118,23 +118,23 @@
   .callout.show{opacity:1;transform:translate(-50%,-135%)}
   .callout::after{content:"";position:absolute;left:50%;bottom:-6px;width:11px;height:11px;background:#0c1030;border-right:1px solid var(--line);border-bottom:1px solid var(--line);transform:translateX(-50%) rotate(45deg)}
   .callout .ln{display:block;line-height:1.5}
-  .callout .ok{color:var(--ok)}.callout .bad{color:var(--err)}.callout .cy{color:var(--read)}
+  .callout .ok{color:var(--ok)}.callout .bad{color:var(--err)}.callout .cy{color:var(--read)}.callout .or{color:var(--dns)}
 
   .lower{display:grid;grid-template-columns:1.35fr 1fr;gap:16px}
   @media(max-width:640px){.lower{grid-template-columns:1fr}}
   .console{padding:14px 16px;min-height:200px}
-  .console h3,.stats h3,.dbp h3,.cachep h3{margin:0 0 10px;font:700 12px "Space Mono";letter-spacing:.2em;text-transform:uppercase;color:var(--t-dim);display:flex;align-items:center;gap:8px}
+  .console h3,.stats h3,.dbp h3,.cachep h3,.dnsp h3{margin:0 0 10px;font:700 12px "Space Mono";letter-spacing:.18em;text-transform:uppercase;color:var(--t-dim);display:flex;align-items:center;gap:8px}
   .rec{width:8px;height:8px;border-radius:50%;background:var(--ok);box-shadow:0 0 10px var(--ok)}
-  .log{font-family:"Space Mono",monospace;font-size:12.5px;line-height:1.7;max-height:260px;overflow:auto}
+  .log{font-family:"Space Mono",monospace;font-size:12.5px;line-height:1.7;max-height:320px;overflow:auto}
   .log .row{display:flex;gap:10px;opacity:0;transform:translateY(4px);animation:in .25s forwards}
   @keyframes in{to{opacity:1;transform:none}}
   .log .t{color:var(--t-dim);flex:0 0 auto}
   .log .m{color:var(--t-lo)}
   .log .m.ok{color:var(--ok)}.log .m.err{color:var(--err)}.log .m.warn{color:var(--warn)}
   .log .m.like{color:var(--like)}.log .m.comment{color:var(--comment)}.log .m.post{color:var(--post)}.log .m.read{color:var(--read)}
-  .log .m.srv{color:var(--server)}.log .m.db{color:var(--db)}.log .m.cache{color:var(--read)}
+  .log .m.dns{color:var(--dns)}.log .m.srv{color:var(--server)}.log .m.db{color:var(--db)}.log .m.cache{color:var(--read)}
   .rightcol{display:flex;flex-direction:column;gap:16px}
-  .stats,.dbp,.cachep{padding:14px 16px}
+  .stats,.dbp,.cachep,.dnsp{padding:14px 16px}
   .sgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
   .stat{background:rgba(255,255,255,.03);border:1px solid var(--line);border-radius:14px;padding:11px 12px}
   .stat .k{font:400 11px "Space Mono";color:var(--t-dim)}
@@ -149,8 +149,12 @@
   @keyframes cellflash{0%{filter:brightness(1.9)}100%{filter:brightness(1)}}
   .dbcell.hit{background:rgba(34,211,238,.08);border-color:rgba(34,211,238,.3)}.dbcell.hit .v{color:var(--read)}
   .dbcell.miss{background:rgba(255,176,32,.08);border-color:rgba(255,176,32,.3)}.dbcell.miss .v{color:var(--warn)}
+  .dbcell.dns{background:rgba(251,146,60,.08);border-color:rgba(251,146,60,.3)}.dbcell.dns .v{color:var(--dns)}
   .cache-status{font:700 13px "Space Mono";text-align:center;padding:9px;border-radius:12px;margin-bottom:10px;border:1px solid var(--line);color:var(--t-lo);transition:.2s}
   .cache-status.fresh{color:#04222a;background:var(--read);border-color:var(--read)}
+  .cache-status.resolved{color:#3a1e00;background:var(--dns);border-color:var(--dns)}
+  .dns-ip{font:400 11.5px "Space Mono";color:var(--t-lo);text-align:center;margin:-4px 0 10px}
+  .dns-ip b{color:var(--dns)}
 
   .foot{margin-top:24px;color:var(--t-dim);font-size:12.5px;text-align:center;line-height:1.6}
   .foot b{color:var(--t-lo)}
@@ -161,14 +165,15 @@
 <div class="wrap">
   <header>
     <div>
-      <p class="eyebrow">Client &rarr; Server &rarr; Cache &rarr; Database</p>
+      <p class="eyebrow">DNS &rarr; Server &rarr; Cache &rarr; Database</p>
       <h1>The journey of a request</h1>
-      <p class="sub">Like, comment, or share to <b>write</b> data. Hit <b>Refresh</b> to <b>read</b> it &mdash; and watch the cache serve repeat reads instantly instead of bothering the database.</p>
+      <p class="sub">Before anything else, your phone must turn <b>instagram.com</b> into an IP address &mdash; that's <b>DNS</b>. The first request looks it up; after that the answer is cached. Then the request travels to the server, cache, and database.</p>
     </div>
     <div class="legend">
+      <div class="chip"><span class="dot" style="background:var(--dns)"></span><b>DNS</b>&nbsp;name&rarr;IP</div>
       <div class="chip"><span class="dot" style="background:var(--server)"></span><b>Server</b></div>
-      <div class="chip"><span class="dot" style="background:var(--cache)"></span><b>Cache</b>&nbsp;fast memory</div>
-      <div class="chip"><span class="dot" style="background:var(--db)"></span><b>Database</b>&nbsp;source of truth</div>
+      <div class="chip"><span class="dot" style="background:var(--cache)"></span><b>Cache</b></div>
+      <div class="chip"><span class="dot" style="background:var(--db)"></span><b>Database</b></div>
     </div>
   </header>
 
@@ -190,7 +195,7 @@
           <div class="feed" id="feed"></div>
         </div>
       </div>
-      <p class="tap-hint">Write: <b>&#9829;</b> like &middot; &#128172; comment &middot; &#9995; post<br>Read: &#8635; refresh &mdash; try it twice in a row!</p>
+      <p class="tap-hint">The very first action does a <b>DNS lookup</b>.<br>Write: <b>&#9829;</b> &middot; &#128172; &middot; &#9995; &nbsp; Read: &#8635; refresh</p>
     </div>
 
     <!-- BOARD -->
@@ -204,40 +209,48 @@
             <button data-net="off">&#9992;&#65039; Offline</button>
           </div>
         </div>
-        <svg class="map" id="map" viewBox="0 0 1000 360" preserveAspectRatio="xMidYMid meet">
+        <svg class="map" id="map" viewBox="0 0 1000 400" preserveAspectRatio="xMidYMid meet">
           <defs><filter id="soft" x="-60%" y="-60%" width="220%" height="220%">
             <feGaussianBlur stdDeviation="6" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>
-          <path id="outPath" class="track" d="M100,118 L900,118"/>
-          <path id="outFlow" class="track flow" d="M100,118 L900,118"/>
-          <path id="retPath" class="track" d="M900,118 C956,118 960,205 905,246 C862,280 640,284 520,284 C320,284 150,284 100,284 C58,284 52,173 100,118"/>
-          <path id="retFlow" class="track flow" style="stroke:rgba(47,224,160,.3)" d="M900,118 C956,118 960,205 905,246 C862,280 640,284 520,284 C320,284 150,284 100,284 C58,284 52,173 100,118"/>
+          <path id="dnsPath" class="track" style="stroke-dasharray:5 7;stroke:rgba(251,146,60,.4)" d="M100,215 C110,150 150,85 200,62"/>
+          <path id="outPath" class="track" d="M100,215 L900,215"/>
+          <path id="outFlow" class="track flow" d="M100,215 L900,215"/>
+          <path id="retPath" class="track" d="M900,215 C956,215 960,300 905,340 C862,372 640,376 520,376 C320,376 150,376 100,376 C58,376 52,270 100,215"/>
+          <path id="retFlow" class="track flow" style="stroke:rgba(47,224,160,.3)" d="M900,215 C956,215 960,300 905,340 C862,372 640,376 520,376 C320,376 150,376 100,376 C58,376 52,270 100,215"/>
 
+          <g class="node" id="n-dns">
+            <rect class="nb" x="198" y="30" width="104" height="60" rx="14" fill="#141a3e" stroke="var(--dns)"/>
+            <text x="250" y="66" text-anchor="middle" font-size="20">&#128199;</text>
+            <text class="node-label" x="250" y="108" text-anchor="middle">DNS</text>
+            <text class="node-sub" x="250" y="122" text-anchor="middle">address book</text>
+          </g>
           <g class="node" id="n-you">
-            <rect class="nb" x="48" y="86" width="104" height="64" rx="14" fill="#141a3e" stroke="var(--like)"/>
-            <text x="100" y="114" text-anchor="middle" font-size="21">&#128241;</text>
-            <text class="node-label" x="100" y="170" text-anchor="middle">You</text>
-            <text class="node-sub" x="100" y="185" text-anchor="middle">frontend</text>
+            <rect class="nb" x="48" y="183" width="104" height="64" rx="14" fill="#141a3e" stroke="var(--like)"/>
+            <text x="100" y="211" text-anchor="middle" font-size="21">&#128241;</text>
+            <text class="node-label" x="100" y="267" text-anchor="middle">You</text>
+            <text class="node-sub" x="100" y="282" text-anchor="middle">frontend</text>
           </g>
           <g class="node" id="n-srv">
-            <rect class="nb" x="328" y="86" width="104" height="64" rx="14" fill="#141a3e" stroke="var(--server)"/>
-            <text x="380" y="116" text-anchor="middle" font-size="21">&#128421;&#65039;</text>
-            <text class="node-label" x="380" y="170" text-anchor="middle">Server</text>
-            <text class="node-sub" x="380" y="185" text-anchor="middle">backend</text>
+            <rect class="nb" x="328" y="183" width="104" height="64" rx="14" fill="#141a3e" stroke="var(--server)"/>
+            <text x="380" y="213" text-anchor="middle" font-size="21">&#128421;&#65039;</text>
+            <text class="node-label" x="380" y="267" text-anchor="middle">Server</text>
+            <text class="node-sub" x="380" y="282" text-anchor="middle">backend</text>
           </g>
           <g class="node" id="n-cache">
-            <rect class="nb" x="578" y="86" width="104" height="64" rx="14" fill="#141a3e" stroke="var(--cache)"/>
-            <text x="630" y="116" text-anchor="middle" font-size="21">&#9889;</text>
-            <text class="node-label" x="630" y="170" text-anchor="middle">Cache</text>
-            <text class="node-sub" x="630" y="185" text-anchor="middle">fast memory</text>
+            <rect class="nb" x="578" y="183" width="104" height="64" rx="14" fill="#141a3e" stroke="var(--cache)"/>
+            <text x="630" y="213" text-anchor="middle" font-size="21">&#9889;</text>
+            <text class="node-label" x="630" y="267" text-anchor="middle">Cache</text>
+            <text class="node-sub" x="630" y="282" text-anchor="middle">fast memory</text>
           </g>
           <g class="node" id="n-db">
-            <rect class="nb" x="848" y="86" width="104" height="64" rx="14" fill="#141a3e" stroke="var(--db)"/>
-            <text x="900" y="116" text-anchor="middle" font-size="21">&#128190;</text>
-            <text class="node-label" x="900" y="170" text-anchor="middle">Database</text>
-            <text class="node-sub" x="900" y="185" text-anchor="middle">stores data</text>
+            <rect class="nb" x="848" y="183" width="104" height="64" rx="14" fill="#141a3e" stroke="var(--db)"/>
+            <text x="900" y="213" text-anchor="middle" font-size="21">&#128190;</text>
+            <text class="node-label" x="900" y="267" text-anchor="middle">Database</text>
+            <text class="node-sub" x="900" y="282" text-anchor="middle">stores data</text>
           </g>
           <g id="packets"></g>
         </svg>
+        <div class="callout" id="co-dns"></div>
         <div class="callout" id="co-srv"></div>
         <div class="callout" id="co-cache"></div>
         <div class="callout" id="co-db"></div>
@@ -260,8 +273,17 @@
               <div class="stat streak"><div class="k">streak</div><div class="v" id="sStreak">0</div></div>
             </div>
           </div>
+          <div class="panel dnsp">
+            <h3>&#128199; DNS cache (your device)</h3>
+            <div class="cache-status" id="dnsStatus">NOT RESOLVED</div>
+            <div class="dns-ip" id="dnsIp">instagram.com &rarr; ?</div>
+            <div class="row3">
+              <div class="dbcell dns" id="dLook"><div class="v">0</div><div class="k">lookups</div></div>
+              <div class="dbcell dns" id="dCache"><div class="v">0</div><div class="k">from cache</div></div>
+            </div>
+          </div>
           <div class="panel cachep">
-            <h3>&#9889; Cache (server-side)</h3>
+            <h3>&#9889; Data cache (server-side)</h3>
             <div class="cache-status" id="cacheStatus">EMPTY</div>
             <div class="row3">
               <div class="dbcell hit" id="cHits"><div class="v">0</div><div class="k">hits</div></div>
@@ -282,8 +304,8 @@
   </div>
 
   <p class="foot">
-    <b>Writes</b> (like / comment / post) always travel to the database &mdash; and clear the cache on the way, because the data just changed.<br>
-    <b>Reads</b> (refresh) check the cache first: a <b>hit</b> skips the database and comes back fast; a <b>miss</b> fetches from the database and refills the cache. The cache also expires on its own after a few seconds (its TTL).
+    <b>DNS</b> is like an address book: turn <b>instagram.com</b> into an IP once, then reuse it (cached with its own TTL).<br>
+    <b>Writes</b> reach the database and clear the data cache. <b>Reads</b> hit the data cache when they can. Two caches, two TTLs &mdash; both there to avoid repeating slow work.
   </p>
 </div>
 
@@ -303,6 +325,9 @@
     isFresh:function(){return T()<this.validUntil;},
     fill:function(){this.validUntil=T()+this.ttl;this.everFilled=true;},
     invalidate:function(){this.validUntil=0;}};
+  var dns={ip:"157.240.22.35", validUntil:0, ttl:30000, lookups:0, cached:0,
+    isResolved:function(){return T()<this.validUntil;},
+    resolve:function(){this.validUntil=T()+this.ttl;}};
   var net="fast", inFlight=0, MAXFLIGHT=6;
   var totalReqs=0, streak=0, best=null;
   var pid=1, cid=1;
@@ -314,17 +339,17 @@
 
   // ---------- els ----------
   var feedEl=$("feed"), logEl=$("log"), packetsG=$("packets"), map=$("map");
-  var outPath=$("outPath"), retPath=$("retPath");
-  var nodes={you:$("n-you"),srv:$("n-srv"),cache:$("n-cache"),db:$("n-db")};
-  var co={srv:$("co-srv"),cache:$("co-cache"),db:$("co-db"),you:$("co-you"),mid:$("co-mid")};
-  var POS={you:[100,118],srv:[380,118],cache:[630,118],db:[900,118]};
+  var dnsPathEl=$("dnsPath"), outPath=$("outPath"), retPath=$("retPath");
+  var nodes={dns:$("n-dns"),you:$("n-you"),srv:$("n-srv"),cache:$("n-cache"),db:$("n-db")};
+  var co={dns:$("co-dns"),srv:$("co-srv"),cache:$("co-cache"),db:$("co-db"),you:$("co-you"),mid:$("co-mid")};
+  var POS={dns:[250,55],you:[100,215],srv:[380,215],cache:[630,215],db:[900,215]};
 
   // ---------- console ----------
   function log(msg,cls){
     var r=document.createElement("div");r.className="row";
     r.innerHTML='<span class="t">'+now()+'</span><span class="m '+(cls||"")+'">'+msg+'</span>';
     logEl.insertBefore(r,logEl.firstChild);
-    while(logEl.children.length>34)logEl.removeChild(logEl.lastChild);
+    while(logEl.children.length>40)logEl.removeChild(logEl.lastChild);
   }
 
   // ---------- panels ----------
@@ -339,10 +364,18 @@
     $("cMiss").querySelector(".v").textContent=fmt(cache.misses);
     if(which){var c=$(which);if(c){c.classList.remove("flash");void c.offsetWidth;c.classList.add("flash");}}
   }
-  function cacheStatusLoop(){
-    var el=$("cacheStatus");
-    if(cache.isFresh()){el.className="cache-status fresh";el.textContent="FRESH \u00b7 "+Math.ceil((cache.validUntil-T())/1000)+"s left";}
-    else{el.className="cache-status";el.textContent=cache.everFilled?"EMPTY (cleared / expired)":"EMPTY";}
+  function updateDNS(which){
+    $("dLook").querySelector(".v").textContent=fmt(dns.lookups);
+    $("dCache").querySelector(".v").textContent=fmt(dns.cached);
+    if(which){var c=$(which);if(c){c.classList.remove("flash");void c.offsetWidth;c.classList.add("flash");}}
+  }
+  function statusLoop(){
+    var ce=$("cacheStatus");
+    if(cache.isFresh()){ce.className="cache-status fresh";ce.textContent="FRESH \u00b7 "+Math.ceil((cache.validUntil-T())/1000)+"s left";}
+    else{ce.className="cache-status";ce.textContent=cache.everFilled?"EMPTY (cleared / expired)":"EMPTY";}
+    var de=$("dnsStatus"),ip=$("dnsIp");
+    if(dns.isResolved()){de.className="cache-status resolved";de.textContent="RESOLVED \u00b7 "+Math.ceil((dns.validUntil-T())/1000)+"s left";ip.innerHTML="instagram.com &rarr; <b>"+dns.ip+"</b>";}
+    else{de.className="cache-status";de.textContent="NOT RESOLVED";ip.innerHTML="instagram.com &rarr; ?";}
   }
 
   // ---------- geometry ----------
@@ -352,13 +385,14 @@
     for(i=Math.max(0,bl-step);i<=Math.min(total,bl+step);i+=step/25){var q=path.getPointAtLength(i),e=(q.x-tx)*(q.x-tx)+(q.y-ty)*(q.y-ty);if(e<bd){bd=e;bl=i;}}
     return bl;
   }
-  var OUT={},RET={};
+  var OUT={},RET={},DNSLEN=0;
   function computeLengths(){
     OUT.total=outPath.getTotalLength();
     OUT.srv=lengthAtPoint(outPath,POS.srv[0],POS.srv[1]);
     OUT.cache=lengthAtPoint(outPath,POS.cache[0],POS.cache[1]);
     OUT.db=OUT.total;
     RET.total=retPath.getTotalLength(); RET.you=RET.total;
+    DNSLEN=dnsPathEl.getTotalLength();
   }
   function svgToPanel(x,y){
     var pt=map.createSVGPoint();pt.x=x;pt.y=y;var p=pt.matrixTransform(map.getScreenCTM());
@@ -372,7 +406,8 @@
   var BUBBLE='<path transform="translate(-11,-11)" d="M21 11.5a8.5 8.5 0 0 1-11.9 7.8L3 21l1.7-6A8.5 8.5 0 1 1 21 11.5z"/>';
   var CAM='<g transform="translate(-11,-9)"><rect x="1" y="4" width="22" height="15" rx="3"/><circle cx="12" cy="11.5" r="4" fill="#141a3e"/></g>';
   var DOC='<rect transform="translate(-9,-11)" x="0" y="0" width="18" height="22" rx="3"/>';
-  var SHAPES={like:HEART,comment:BUBBLE,post:CAM,read:DOC,ok:HEART};
+  var PIN='<path transform="translate(-12,-12)" d="M12 2C8.1 2 5 5.1 5 9c0 5.2 7 13 7 13s7-7.8 7-13c0-3.9-3.1-7-7-7zm0 9.5A2.5 2.5 0 1 1 12 6.5a2.5 2.5 0 0 1 0 5z"/>';
+  var SHAPES={like:HEART,comment:BUBBLE,post:CAM,read:DOC,dns:PIN,ok:HEART};
   function makePacket(color,shape){
     var g=document.createElementNS("http://www.w3.org/2000/svg","g");
     g.innerHTML='<g filter="url(#soft)"><g fill="'+color+'">'+(SHAPES[shape]||HEART)+'</g></g>';
@@ -403,109 +438,150 @@
     var conf=NET[net],offline=(net==="off"),isRead=(opts.mode==="read");
     var outDur=reduce?260:rand(conf.out[0],conf.out[1]);
     var backDur=reduce?260:rand(conf.back[0],conf.back[1]);
-    var col=opts.color;
+    var col=opts.color, didLookup=false;
     log("&rarr; "+(isRead?"GET ":"POST ")+opts.endpoint+" &mdash; "+opts.type+" request sent",opts.type);
-    var pkt=makePacket(col,opts.type);
 
-    function serverStep(){
-      flashNode(nodes.srv,1000);
-      var h="";for(var i=0;i<opts.steps.length;i++)h+='<span class="ln ok">&#10003; '+opts.steps[i]+'</span>';
-      callout(co.srv,POS.srv[0],POS.srv[1],h,1300);
-      log("server: "+opts.steps.join(", "),"srv");
-    }
-    function cacheInvalidate(){
-      flashNode(nodes.cache,900);cache.invalidate();
-      callout(co.cache,POS.cache[0],POS.cache[1],'<span class="ln bad">&#128465; cache cleared</span><span class="ln">data changed</span>',1200);
-      log("cache invalidated &mdash; data changed","cache");
-    }
-    function finalize(shown){
-      flashNode(nodes.you,700);
-      $("sLast").innerHTML=shown+'<small>&nbsp;ms</small>';
-      if(best===null||shown<best){best=shown;$("sBest").innerHTML=best+'<small>&nbsp;ms</small>';}
-      streak++;$("sStreak").textContent=streak;
-      callout(co.you,POS.you[0],POS.you[1],'<span class="ln ok">&#10003; '+shown+'ms</span>',1100);
-      inFlight--;
-    }
-    function fail(){
-      if(opts.onFail)opts.onFail(false);
-      streak=0;$("sStreak").textContent="0";
-      log("&#10007; "+opts.type+" failed &mdash; "+(isRead?"couldn't reach the server":"change rolled back"),"err");
-      if(isRead)log("(a server-side cache still needs a network hop &mdash; offline can't reach it)","warn");
-      inFlight--;
-    }
+    function dnsPenalty(){return didLookup?(net==="slow"?150:35):0;}
 
-    if(offline){
-      travel(outPath,pkt,col,0,OUT.srv*0.5,outDur*0.55,null,function(p){
-        callout(co.mid,p.x,p.y,'<span class="ln bad">&#10007; no connection</span>',1100);
-        travel(outPath,pkt,"var(--err)",OUT.srv*0.5,0,outDur*0.5,null,function(){rm(pkt);fail();});
+    // ---- Phase 1: DNS ----
+    resolveDNS(function(okDNS){
+      if(!okDNS){ // offline, not cached -> cannot resolve
+        if(opts.onFail)opts.onFail(false);
+        streak=0;$("sStreak").textContent="0";
+        log("&#10007; DNS lookup failed &mdash; can't resolve a name with no connection","err");
+        inFlight--;return;
+      }
+      mainJourney();
+    });
+
+    function resolveDNS(cb){
+      if(dns.isResolved()){
+        dns.cached++;updateDNS("dCache");
+        callout(co.you,POS.you[0],POS.you[1],'<span class="ln or">&#128199; DNS cached</span><span class="ln">'+dns.ip+'</span>',1000);
+        log("DNS: instagram.com already known &rarr; "+dns.ip+" (from cache)","dns");
+        cb(true);return;
+      }
+      if(offline){
+        flashNode(nodes.dns,700);
+        callout(co.dns,POS.dns[0],POS.dns[1],'<span class="ln bad">&#10007; can\'t resolve</span>',1100);
+        cb(false);return;
+      }
+      didLookup=true;dns.lookups++;updateDNS("dLook");
+      log("DNS lookup: what is the IP for instagram.com?","dns");
+      var pk=makePacket("var(--dns)","dns");
+      var dur=reduce?200:rand(280,520);
+      travel(dnsPathEl,pk,"var(--dns)",0,DNSLEN,dur,[{at:DNSLEN,fn:function(){
+        flashNode(nodes.dns,900);
+        callout(co.dns,POS.dns[0],POS.dns[1],'<span class="ln ok">instagram.com</span><span class="ln or">&rarr; '+dns.ip+'</span>',1300);
+        log("DNS reply: "+dns.ip+" (cached for "+(dns.ttl/1000)+"s)","dns");
+        dns.resolve();
+      }}],function(){
+        travel(dnsPathEl,pk,"var(--dns)",DNSLEN,0,dur,null,function(){rm(pk);cb(true);});
       });
-      return;
     }
 
-    var toCache=outDur*(OUT.cache/OUT.db);
-    var cacheToDb=outDur*((OUT.db-OUT.cache)/OUT.db);
+    // ---- Phase 2: main journey ----
+    function mainJourney(){
+      var pkt=makePacket(col,opts.type);
+      function serverStep(){
+        flashNode(nodes.srv,1000);
+        var h="";for(var i=0;i<opts.steps.length;i++)h+='<span class="ln ok">&#10003; '+opts.steps[i]+'</span>';
+        callout(co.srv,POS.srv[0],POS.srv[1],h,1300);
+        log("server: "+opts.steps.join(", "),"srv");
+      }
+      function cacheInvalidate(){
+        flashNode(nodes.cache,900);cache.invalidate();
+        callout(co.cache,POS.cache[0],POS.cache[1],'<span class="ln bad">&#128465; cache cleared</span><span class="ln">data changed</span>',1200);
+        log("data cache invalidated &mdash; data changed","cache");
+      }
+      function finalize(shown){
+        flashNode(nodes.you,700);
+        $("sLast").innerHTML=shown+'<small>&nbsp;ms</small>';
+        if(best===null||shown<best){best=shown;$("sBest").innerHTML=best+'<small>&nbsp;ms</small>';}
+        streak++;$("sStreak").textContent=streak;
+        callout(co.you,POS.you[0],POS.you[1],'<span class="ln ok">&#10003; '+shown+'ms</span>',1100);
+        inFlight--;
+      }
+      function fail(){
+        if(opts.onFail)opts.onFail(false);
+        streak=0;$("sStreak").textContent="0";
+        log("&#10007; "+opts.type+" failed &mdash; "+(isRead?"couldn't reach the server":"change rolled back"),"err");
+        inFlight--;
+      }
 
-    if(!isRead){
-      // ---- WRITE ----
-      var marks=[{at:OUT.srv,fn:serverStep},{at:OUT.cache,fn:cacheInvalidate}];
-      travel(outPath,pkt,col,0,OUT.db,outDur,marks,function(){
-        flashNode(nodes.db,1000);
-        var r=opts.onDB();
-        callout(co.db,POS.db[0],POS.db[1],r.callout,1400);
-        log("database: "+r.log,"db");
-        rm(pkt);
-        var pk2=makePacket("var(--ok)","ok");
-        travel(retPath,pk2,"var(--ok)",0,RET.you,backDur,null,function(){
-          if(opts.onConfirm)opts.onConfirm();
-          var shown=Math.round(rand(conf.rtt[0],conf.rtt[1]));
-          finalize(shown);
-          log("&#10003; success &mdash; UI confirmed ("+shown+"ms)","ok");
-          rm(pk2);
+      if(offline){
+        travel(outPath,pkt,col,0,OUT.srv*0.5,outDur*0.55,null,function(p){
+          callout(co.mid,p.x,p.y,'<span class="ln bad">&#10007; no connection</span>',1100);
+          travel(outPath,pkt,"var(--err)",OUT.srv*0.5,0,outDur*0.5,null,function(){rm(pkt);fail();});
         });
-      });
-      return;
-    }
+        return;
+      }
 
-    // ---- READ ----
-    var hit=cache.isFresh();
-    travel(outPath,pkt,col,0,OUT.cache,toCache,[{at:OUT.srv,fn:serverStep}],function(){
-      if(hit){
-        cache.hits++;updateCache("cHits");flashNode(nodes.cache,900);
-        callout(co.cache,POS.cache[0],POS.cache[1],'<span class="ln cy">&#9889; cache HIT</span><span class="ln">served from memory</span>',1400);
-        log("cache HIT &mdash; database not needed","cache");
-        travel(outPath,pkt,"var(--ok)",OUT.cache,0,toCache,null,function(){
-          rm(pkt);
-          var shown=Math.max(3,Math.round(rand(conf.rtt[0],conf.rtt[1])*0.4));
-          finalize(shown);finishRead(true,shown);
-        });
-      }else{
-        cache.misses++;updateCache("cMiss");flashNode(nodes.cache,900);
-        callout(co.cache,POS.cache[0],POS.cache[1],'<span class="ln bad">&#10007; cache MISS</span><span class="ln">ask the database</span>',1300);
-        log("cache MISS &mdash; going to the database","warn");
-        travel(outPath,pkt,col,OUT.cache,OUT.db,cacheToDb,null,function(){
+      var toCache=outDur*(OUT.cache/OUT.db);
+      var cacheToDb=outDur*((OUT.db-OUT.cache)/OUT.db);
+
+      if(!isRead){
+        // WRITE
+        var marks=[{at:OUT.srv,fn:serverStep},{at:OUT.cache,fn:cacheInvalidate}];
+        travel(outPath,pkt,col,0,OUT.db,outDur,marks,function(){
           flashNode(nodes.db,1000);
-          cache.fill();
-          callout(co.db,POS.db[0],POS.db[1],'<span class="ln db">&#128214; read from DB</span><span class="ln cy">&#9889; cache filled</span>',1400);
-          log("read from database, then filled the cache","db");
-          flashNode(nodes.cache,900);
+          var r=opts.onDB();
+          callout(co.db,POS.db[0],POS.db[1],r.callout,1400);
+          log("database: "+r.log,"db");
           rm(pkt);
           var pk2=makePacket("var(--ok)","ok");
           travel(retPath,pk2,"var(--ok)",0,RET.you,backDur,null,function(){
+            if(opts.onConfirm)opts.onConfirm();
+            var shown=Math.round(rand(conf.rtt[0],conf.rtt[1]))+dnsPenalty();
+            finalize(shown);
+            log("&#10003; success &mdash; UI confirmed ("+shown+"ms)","ok");
             rm(pk2);
-            var shown=Math.round(rand(conf.rtt[0],conf.rtt[1]))+(net==="slow"?140:40);
-            finalize(shown);finishRead(false,shown);
           });
         });
+        return;
       }
-    });
 
-    function finishRead(wasHit,shown){
-      var ic=$("refreshIc"),btn=$("refreshBtn"),meta=$("refreshMeta");
-      ic.classList.remove("spin");btn.disabled=false;
-      meta.className="ep "+(wasHit?"hit":"miss");
-      meta.textContent=wasHit?("served from cache \u00b7 "+shown+"ms"):("from database \u00b7 "+shown+"ms");
-      setTimeout(function(){meta.className="ep";meta.textContent="GET /feed";},2200);
-      log("&#10003; feed refreshed "+(wasHit?"from cache":"from the database")+" ("+shown+"ms)","ok");
+      // READ
+      var hit=cache.isFresh();
+      travel(outPath,pkt,col,0,OUT.cache,toCache,[{at:OUT.srv,fn:serverStep}],function(){
+        if(hit){
+          cache.hits++;updateCache("cHits");flashNode(nodes.cache,900);
+          callout(co.cache,POS.cache[0],POS.cache[1],'<span class="ln cy">&#9889; cache HIT</span><span class="ln">served from memory</span>',1400);
+          log("data cache HIT &mdash; database not needed","cache");
+          travel(outPath,pkt,"var(--ok)",OUT.cache,0,toCache,null,function(){
+            rm(pkt);
+            var shown=Math.max(3,Math.round(rand(conf.rtt[0],conf.rtt[1])*0.4))+dnsPenalty();
+            finalize(shown);finishRead(true,shown);
+          });
+        }else{
+          cache.misses++;updateCache("cMiss");flashNode(nodes.cache,900);
+          callout(co.cache,POS.cache[0],POS.cache[1],'<span class="ln bad">&#10007; cache MISS</span><span class="ln">ask the database</span>',1300);
+          log("data cache MISS &mdash; going to the database","warn");
+          travel(outPath,pkt,col,OUT.cache,OUT.db,cacheToDb,null,function(){
+            flashNode(nodes.db,1000);
+            cache.fill();
+            callout(co.db,POS.db[0],POS.db[1],'<span class="ln db">&#128214; read from DB</span><span class="ln cy">&#9889; cache filled</span>',1400);
+            log("read from database, then filled the cache","db");
+            flashNode(nodes.cache,900);
+            rm(pkt);
+            var pk2=makePacket("var(--ok)","ok");
+            travel(retPath,pk2,"var(--ok)",0,RET.you,backDur,null,function(){
+              rm(pk2);
+              var shown=Math.round(rand(conf.rtt[0],conf.rtt[1]))+(net==="slow"?140:40)+dnsPenalty();
+              finalize(shown);finishRead(false,shown);
+            });
+          });
+        }
+      });
+
+      function finishRead(wasHit,shown){
+        var ic=$("refreshIc"),btn=$("refreshBtn"),meta=$("refreshMeta");
+        ic.classList.remove("spin");btn.disabled=false;
+        meta.className="ep "+(wasHit?"hit":"miss");
+        meta.textContent=wasHit?("served from cache \u00b7 "+shown+"ms"):("from database \u00b7 "+shown+"ms");
+        setTimeout(function(){meta.className="ep";meta.textContent="GET /feed";},2200);
+        log("&#10003; feed refreshed "+(wasHit?"from cache":"from the database")+" ("+shown+"ms)","ok");
+      }
     }
   }
 
@@ -553,9 +629,9 @@
     refreshLikes(post);
 
     var chipWrap=el.querySelector(".chips");
-    [["\uD83D\uDD25","\uD83D\uDD25"],["Love this!","Love this!"],["Where is this?","Where is this?"]].forEach(function(p){
-      var b=document.createElement("button");b.textContent=p[0];
-      b.onclick=function(){input.value=p[1];input.focus();};chipWrap.appendChild(b);
+    ["\uD83D\uDD25","Love this!","Where is this?"].forEach(function(txt){
+      var b=document.createElement("button");b.textContent=txt;
+      b.onclick=function(){input.value=txt;input.focus();};chipWrap.appendChild(b);
     });
     post._likeBtn.onclick=function(){doLike(post);};
     el.querySelector(".cmtFocus").onclick=function(){input.focus();};
@@ -638,10 +714,9 @@
   });
 
   function boot(){
-    computeLengths();seed();updateDB();updateCache();cacheStatusLoop();
-    setInterval(cacheStatusLoop,250);
-    log("ready \u2014 write with like/comment/post, or refresh to read","ok");
-    log("tip: refresh twice fast to see a cache HIT","cache");
+    computeLengths();seed();updateDB();updateCache();updateDNS();statusLoop();
+    setInterval(statusLoop,250);
+    log("ready \u2014 your first action will do a DNS lookup first","dns");
   }
   if(document.readyState!=="loading")boot();else document.addEventListener("DOMContentLoaded",boot);
 })();
