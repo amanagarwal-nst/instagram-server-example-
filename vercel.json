@@ -1,5 +1,5 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "cleanUrls": true,
-  "rewrites": [{ "source": "/index2", "destination": "/index2" }]
+  "rewrites": [{ "source": "/index2", "destination": "/index2" },  {"source": "/twelve-seals", "destination": "/twelve-seals" }]
 }
